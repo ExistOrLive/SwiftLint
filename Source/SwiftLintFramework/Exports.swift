@@ -3,7 +3,7 @@
 import SwiftLintExtraRules
 
 private let _registerAllRulesOnceImpl: Void = {
-    RuleRegistry.shared.register(rules: builtInRules + coreRules + extraRules())
+    RuleRegistry.shared.register(rules: builtInRules + coreRules + extraRules() + ZM_Rules)
 }()
 
 public extension RuleRegistry {
