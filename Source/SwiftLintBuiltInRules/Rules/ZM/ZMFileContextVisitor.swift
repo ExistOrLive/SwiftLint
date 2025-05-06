@@ -143,7 +143,7 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
     /// 类声明词法环境处理
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         if let parentContext = currentLexicalEnvironmentContext {
-             let name = node.identifier.text
+            let name = node.name.text
              let context = ZMFileLexicalEnvironmentContext(type: .classType, node: node, name: name, parentLexicalEnvironment: parentContext)
              parentContext.childLexicalEnvironmentArray.append(context)
              self.currentLexicalEnvironmentContext = context
@@ -159,7 +159,7 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
       /// 结构体声明词法环境处理
     override func visit(_ node: StructDeclSyntax) -> SyntaxVisitorContinueKind {
         if let parentContext = currentLexicalEnvironmentContext {
-             let name = node.identifier.text
+            let name = node.name.text
              let context = ZMFileLexicalEnvironmentContext(type: .structType, node: node, name: name, parentLexicalEnvironment: parentContext)
              parentContext.childLexicalEnvironmentArray.append(context)
              self.currentLexicalEnvironmentContext = context
@@ -176,7 +176,7 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
     override func visit(_ node: ExtensionDeclSyntax) -> SyntaxVisitorContinueKind {
 
         if let parentContext = currentLexicalEnvironmentContext {
-             let name = node.extendedType.as(SimpleTypeIdentifierSyntax.self)?.name.text ?? ""
+            let name = node.extendedType.as(IdentifierTypeSyntax.self)?.name.text ?? ""
              if let originDeclContext = parentContext.childLexicalEnvironmentArray.first(where: { $0.name ==  name && ($0.type == .structType || $0.type == .enumType || $0.type == .classType || $0.type == .extensionType) }) {
                 /// 找到原类，结构体，枚举或者 第一个扩展的词法环境
                 self.currentLexicalEnvironmentContext = originDeclContext
@@ -197,7 +197,7 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
     /// 枚举声明词法环境处理
     override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
         if let parentContext = currentLexicalEnvironmentContext {
-             let name = node.identifier.text
+            let name = node.name.text
              let context = ZMFileLexicalEnvironmentContext(type: .structType, node: node, name: name, parentLexicalEnvironment: parentContext)
              parentContext.childLexicalEnvironmentArray.append(context)
              self.currentLexicalEnvironmentContext = context
@@ -219,7 +219,7 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
                 /// 1. 处理捕获列表
                 if let captures = signature.capture {
                     captures.items.forEach{ item in
-                        let name = item.expression.as(IdentifierExprSyntax.self)?.identifier.text ?? ""
+                        let name = item.expression.as(DeclReferenceExprSyntax.self)?.baseName.text ?? ""
                         var isWeak = false
                         var isUnowned =  false
                         let specifierText = item.specifier?.specifier.text ?? ""
@@ -235,7 +235,7 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
                 }
 
                  /// 2. 闭包入参
-                if let parameterList = signature.input?.as(ClosureParameterClauseSyntax.self)?.parameterList {
+                 if let parameterList = signature.parameterClause?.as(ClosureParameterClauseSyntax.self)?.parameters {
                       // 带括号
                      parameterList.forEach { parameter in
                          let name = parameter.firstName.text
@@ -243,7 +243,7 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
                          let param = ZMLexicalEnvironmentVariableModel(type: .functionParam, node: parameter, name: name, typeName: type, isWeak: false, isUnowned: false, lexicalEnvironment: context)
                          context.variableList.append(param)
                      }
-                } else if let parameterList = signature.input?.as(ClosureParamListSyntax.self) {
+                 } else if let parameterList = signature.parameterClause?.as(ClosureShorthandParameterListSyntax.self) {
                     /// 不带括号
                     parameterList.forEach { parameter in
                          let name = parameter.name.text
@@ -268,11 +268,11 @@ class ZMFileContextVisitor<Configuration: RuleConfiguration>: ViolationsSyntaxVi
     /// 处理函数声明
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         if let parentContext = currentLexicalEnvironmentContext {
-             let name = node.identifier.text
-             let fullName = node.identifier.text + node.signature.description
+            let name = node.name.text
+            let fullName = node.name.text + node.signature.description
              /// 函数词法环境
              let context = ZMFileLexicalEnvironmentContext(type: .functionType, node: node, name: name, parentLexicalEnvironment: parentContext)
-             node.signature.input.parameterList.forEach { parameter in
+            node.signature.parameterClause.parameters.forEach { parameter in
                    var name = parameter.firstName.text
                    if let secondName = parameter.secondName?.text {
                        name  = secondName

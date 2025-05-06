@@ -1,0 +1,19 @@
+only_rules:
+    - ZM_Forbid_Function_Call_Rule
+
+# 规则的参数配置
+
+ZM_Forbid_Function_Call_Rule:
+     forbid_function_call_array:
+        - type: FunctionNameType
+          functionDescArray:
+              - UIView
+          fixTip: "UIView相关方法已被废弃"
+        - type: FunctionCallType
+          functionDescArray: 
+              - UIFont.systemFont
+              - UIFont.boldSystemFont
+              - UIFont.italicSystemFont
+              - UIFont.monospacedDigitSystemFont
+              - UIFont.monospacedSystemFont
+          fixTip: "建议不用使用UIFont.systemFont相关方法，避免UI适配相关问题"

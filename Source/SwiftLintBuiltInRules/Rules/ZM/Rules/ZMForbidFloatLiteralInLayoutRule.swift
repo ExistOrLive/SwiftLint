@@ -9,6 +9,10 @@
 import Foundation
 import SwiftSyntax
 
+
+/**
+ * 在布局计算中禁止使用浮点数字面值参与计算
+ */
 struct ZMForbidFloatLiteralInLayoutRule: SwiftSyntaxRule {
 
     var configuration = SeverityConfiguration<Self>(.warning)
@@ -54,7 +58,7 @@ extension ZMForbidFloatLiteralInLayoutRule {
 
         override func visitPost(_ node: FloatLiteralExprSyntax) {
 
-           guard let floatValue = Double(node.floatingDigits.text), floatValue == 0.5 || floatValue == 0.3 else { return }
+            guard let floatValue = Double(node.literal.text), floatValue == 0.5 || floatValue == 0.3 else { return }
 
            if !snpFunctionCall.isEmpty {
                 violations.append(node.positionAfterSkippingLeadingTrivia)
@@ -76,12 +80,12 @@ extension ZMForbidFloatLiteralInLayoutRule {
 
 
             if let memberAccessExpr = node.calledExpression.as(MemberAccessExprSyntax.self),
-               ["makeConstraints","remakeConstraints","updateConstraints"].contains(memberAccessExpr.name.text) {
+               ["makeConstraints","remakeConstraints","updateConstraints"].contains(memberAccessExpr.declName.baseName.text) {
                 snpFunctionCall.append(node)
             }
 
-            if let identifierExpr = node.calledExpression.as(IdentifierExprSyntax.self),
-               ["CGRect"].contains(identifierExpr.identifier.text) {
+            if let identifierExpr = node.calledExpression.as(DeclReferenceExprSyntax.self),
+               ["CGRect"].contains(identifierExpr.baseName.text) {
                 rectFunctionCall.append(node)
             }
 

@@ -8,6 +8,9 @@
 import Foundation
 import SwiftSyntax
 
+/**
+ 使用闭包调用结果赋值的属性需要使用懒加载
+ */
 struct ZMLazyViewRule: SwiftSyntaxRule {
 
 
